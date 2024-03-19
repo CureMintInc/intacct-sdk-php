@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Copyright 2021 Sage Intacct, Inc.
  *
@@ -17,11 +19,13 @@
 
 namespace Intacct\Xml\Response;
 
+use SimpleXMLElement;
+
 class ErrorMessage
 {
     
     /** @var array */
-    private $errors;
+    private array $errors;
 
     /**
      * @return array
@@ -42,16 +46,16 @@ class ErrorMessage
     /**
      * ErrorMessage constructor.
      *
-     * @param \SimpleXMLElement|null $errorMessage
+     * @param SimpleXMLElement|null $errorMessage
      */
-    public function __construct(\SimpleXMLElement $errorMessage = null)
+    public function __construct(?SimpleXMLElement $errorMessage = null)
     {
         $errors = [];
         foreach ($errorMessage->{'error'} as $error) {
             $pieces = [];
             foreach ($error->children() as $piece) {
                 //strip out any tags in error messages
-                $piece = htmlspecialchars_decode($this->cleanse($piece), ENT_QUOTES);
+                $piece = htmlspecialchars_decode($this->cleanse((string)$piece), ENT_QUOTES | ENT_HTML5);
 
                 if ($piece !== '') {
                     $pieces[] = $piece;
@@ -69,8 +73,9 @@ class ErrorMessage
      * @param string $value
      * @return string
      */
-    private function cleanse($value)
+    private function cleanse(string $value): string
     {
-        return filter_var(strval($value), FILTER_SANITIZE_STRING);
+        $value = strip_tags($value);
+        return htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }

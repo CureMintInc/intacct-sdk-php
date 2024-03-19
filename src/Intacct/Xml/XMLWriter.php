@@ -17,6 +17,11 @@
 
 namespace Intacct\Xml;
 
+use DateTime;
+use DOMElement;
+use DOMException;
+use InvalidArgumentException;
+
 class XMLWriter extends \XMLWriter
 {
 
@@ -45,12 +50,12 @@ class XMLWriter extends \XMLWriter
      * @param string $name
      * @return bool
      */
-    protected function isValidXmlName(string $name)
+    protected function isValidXmlName(string $name): bool
     {
         try {
-            new \DOMElement($name);
+            new DOMElement($name);
             return true;
-        } catch (\DOMException $ex) {
+        } catch (DOMException $ex) {
             return false;
         }
     }
@@ -58,15 +63,15 @@ class XMLWriter extends \XMLWriter
     /**
      * @inheritdoc
      */
-    public function startElement($name)
+    public function startElement($name): bool
     {
         if ($this->isValidXmlName($name) === false) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 '"' . $name . '" is not a valid name for an XML element'
             );
         }
 
-        parent::startElement($name);
+        return parent::startElement($name);
     }
 
     /**
@@ -78,10 +83,10 @@ class XMLWriter extends \XMLWriter
      *
      * @return bool
      */
-    public function writeElement($name, $content = null, $writeNull = false)
+    public function writeElement($name, $content = null, bool $writeNull = false): bool
     {
         if ($this->isValidXmlName($name) === false) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 '"' . $name . '" is not a valid name for an XML element'
             );
         }
@@ -95,18 +100,18 @@ class XMLWriter extends \XMLWriter
         }
     }
 
-    public function writeElementDate($name, $date = null, $format = self::IA_DATE_FORMAT, $writeNull = false)
+    public function writeElementDate($name, $date = null, $format = self::IA_DATE_FORMAT, bool $writeNull = false): bool
     {
-        if ($date instanceof \DateTime) {
+        if ($date instanceof DateTime) {
             return self::writeElement($name, $date->format($format), $writeNull);
         } else {
             return self::writeElement($name, $date, $writeNull);
         }
     }
 
-    public function writeElementDateTime($name, $date = null, $format = self::IA_DATETIME_FORMAT, $writeNull = false)
+    public function writeElementDateTime($name, $date = null, $format = self::IA_DATETIME_FORMAT, bool $writeNull = false): bool
     {
-        if ($date instanceof \DateTime) {
+        if ($date instanceof DateTime) {
             return self::writeElement($name, $date->format($format), $writeNull);
         } else {
             return self::writeElement($name, $date, $writeNull);
@@ -116,13 +121,13 @@ class XMLWriter extends \XMLWriter
     /**
      * @param mixed $value
      *
-     * @return string
+     * @return mixed
      */
     private function transformValue($value)
     {
         if (is_bool($value)) {
             $value = ($value === true) ? 'true' : 'false';
-        } elseif ($value instanceof \DateTime) {
+        } elseif ($value instanceof DateTime) {
             // Default to date output
             $value = $value->format(self::IA_DATE_FORMAT);
         } elseif (is_array($value)) {
@@ -134,12 +139,12 @@ class XMLWriter extends \XMLWriter
     /**
      * Write full element date tags
      *
-     * @param \DateTime $date
+     * @param DateTime $date
      * @param bool $writeNull
      *
      * @return bool
      */
-    public function writeDateSplitElements(\DateTime $date, $writeNull = true)
+    public function writeDateSplitElements(DateTime $date, bool $writeNull = true): bool
     {
         list($year, $month, $day) = explode('-', $date->format('Y-m-d'));
 
@@ -159,7 +164,7 @@ class XMLWriter extends \XMLWriter
      *
      * @return bool
      */
-    public function writeAttribute($name, $value, $writeNull = true)
+    public function writeAttribute($name, $value, bool $writeNull = true): bool
     {
         if ($value !== null || $writeNull === true) {
             $value = $this->transformValue($value);
